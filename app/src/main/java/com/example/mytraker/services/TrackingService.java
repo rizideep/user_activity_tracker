@@ -89,7 +89,7 @@ public class TrackingService extends Service {
                                         Location lastlocation = new Location("provider");
                                         fristlocation.setLatitude(myLocationList.get(myLocationList.size() - 1).getmLatitudeDegrees());
                                         fristlocation.setLongitude(myLocationList.get(myLocationList.size() - 1).getmLatitudeDegrees());
-                                        String distance = String.valueOf(fristlocation.distanceTo(lastlocation));
+                                        String distance = String.valueOf(fristlocation.distanceTo(lastlocation)/ 1000);
                                         Toast.makeText(TrackingService.this, "Total distance: " + distance,
                                                 Toast.LENGTH_SHORT).show();
                                     }
