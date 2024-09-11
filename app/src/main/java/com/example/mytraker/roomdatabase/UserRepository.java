@@ -4,6 +4,7 @@ import android.app.Application;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -47,11 +48,15 @@ public class UserRepository {
     }
 
 
+    // Delete all locations
+    public Completable deleteAllLocations() {
+        return userDao.deleteAllLocations();
+    }
 
-    public Single<List<MyLocation>> getAllUsers() {
-        return userDao.getAllUsers()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+
+    // Method to fetch all locations
+    public Single<List<MyLocation>> getAllLocations() {
+        return userDao.getAllLocations();
     }
 
 

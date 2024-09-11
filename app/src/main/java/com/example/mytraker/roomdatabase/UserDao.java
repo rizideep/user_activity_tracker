@@ -7,6 +7,7 @@ import androidx.room.Query;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
@@ -20,5 +21,8 @@ public interface UserDao {
     Completable delete(MyLocation myLocation);  // Return Completable for delete operation
 
     @Query("SELECT * FROM user_table ORDER BY mTimeMs ASC")
-    Single<List<MyLocation>> getAllUsers(); // Fetches data once
+    Single<List<MyLocation>> getAllLocations(); // Fetches data once
+
+    @Query("DELETE FROM user_table")  // Query to delete all locations
+    Completable deleteAllLocations();  // Delete all locations
 }

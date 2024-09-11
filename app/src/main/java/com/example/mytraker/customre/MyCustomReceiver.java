@@ -22,15 +22,13 @@ public class MyCustomReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         mContext = context;
-// Initialize variables to track the activity with the highest probability
-
+       // Initialize variables to track the activity with the highest probability
         DetectedActivity highestProbabilityActivity = null;
         int highestProbability = 0;
-        Toast.makeText(mContext, "MyCustomReceiver onReceive", Toast.LENGTH_SHORT).show();
+
         if (ActivityRecognitionResult.hasResult(intent)) {
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
             List<DetectedActivity> detectedActivities = result.getProbableActivities();
-
             for (DetectedActivity activity : detectedActivities) {
                 String activityType = getActivityType(activity.getType());
                 Log.d(TAG, "Detected activity: " + activityType + " with confidence: " + activity.getConfidence());
@@ -44,13 +42,12 @@ public class MyCustomReceiver extends BroadcastReceiver {
             // Check if the activity with the highest probability is not STILL
             if (highestProbabilityActivity != null) {
                 String highestActivityType = getActivityType(highestProbabilityActivity.getType());
-                if (!highestActivityType.equals("STILL")) {
-                    Toast.makeText(mContext, "Most probable activity: " + highestActivityType + " with confidence: " + highestProbability, Toast.LENGTH_SHORT).show();
+                if (!highestActivityType.equalsIgnoreCase("Still")) {
+                    Toast.makeText(mContext, "Activity: " + highestActivityType + " confidence: " + highestProbability,
+                            Toast.LENGTH_SHORT).show();
                     startTrackingService(mContext);
                 }
             }
-
-
         }
     }
 
@@ -71,54 +68,16 @@ public class MyCustomReceiver extends BroadcastReceiver {
             case DetectedActivity.TILTING:
                 return "Tilting";
             case DetectedActivity.UNKNOWN:
-                return "UnknownN";
-            default:
                 return "Unknown";
+            default:
+                return "Unknown default";
         }
     }
 
-    private void handleDetectedActivities(List<DetectedActivity> probableActivities) {
-        for (DetectedActivity activity : probableActivities) {
-
-            switch (activity.getType()) {
-                case DetectedActivity.IN_VEHICLE:
-                    Log.d("ActivityRecognition", "User is in a vehicle");
-                    Toast.makeText(mContext, "User On Vehicle", Toast.LENGTH_SHORT).show();
-                    Toast.makeText(mContext, "Start Location Services", Toast.LENGTH_SHORT).show();
-                    startTrackingService(mContext);
-                    break;
-                case DetectedActivity.ON_BICYCLE:
-                    Log.d("ActivityRecognition", "User is on a bicycle");
-                    Toast.makeText(mContext, "User is on bicycle", Toast.LENGTH_SHORT).show();
-                    break;
-                case DetectedActivity.ON_FOOT:
-                    Log.d("ActivityRecognition", "User is on foot");
-                    Toast.makeText(mContext, "User is on foot", Toast.LENGTH_SHORT).show();
-                    break;
-                case DetectedActivity.RUNNING:
-                    Log.d("ActivityRecognition", "User is running");
-                    Toast.makeText(mContext, "User is running", Toast.LENGTH_SHORT).show();
-                    break;
-                case DetectedActivity.STILL:
-                    Log.d("ActivityRecognition", "User is still");
-                    Toast.makeText(mContext, "User is still", Toast.LENGTH_SHORT).show();
-                    break;
-                case DetectedActivity.WALKING:
-                    Log.d("ActivityRecognition", "User is walking");
-                    Toast.makeText(mContext, "User is walking", Toast.LENGTH_SHORT).show();
-                    break;
-                case DetectedActivity.UNKNOWN:
-                    Log.d("ActivityRecognition", "Unknown activity");
-                    Toast.makeText(mContext, "User is walking", Toast.LENGTH_SHORT).show();
-                    break;
-            }
-        }
-    }
 
     @SuppressLint("NewApi")
     private void startTrackingService(Context context) {
         Intent serviceIntent = new Intent(context, TrackingService.class);
-
         ContextCompat.startForegroundService(context, serviceIntent);
     }
 }

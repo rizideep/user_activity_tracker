@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class UserViewModel extends AndroidViewModel {
     private UserRepository repository;
@@ -34,10 +37,20 @@ public class UserViewModel extends AndroidViewModel {
         repository.delete(myLocation);
     }
 
-    public Single<List<MyLocation>> getAllLocatins() {
-        // Return the Flowable directly to the UI
-        return repository.getAllUsers();
+
+
+    // This method fetches all locations from the repository
+    public Single<List<MyLocation>> getAllLocations() {
+        return repository.getAllLocations()
+                .subscribeOn(Schedulers.io());  // Perform the operation on the I/O thread
     }
+
+
+    // Delete all locations
+    public Completable deleteAllLocations() {
+        return repository.deleteAllLocations();
+    }
+
 
     @Override
     protected void onCleared() {
@@ -47,35 +60,7 @@ public class UserViewModel extends AndroidViewModel {
     }
 
 
-    public void calculateTotalCoveredDistance() {
 
-
-        disposables.add(getAllLocatins()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(users -> {
-                    // Convert List<User> to ArrayList<User>
-                    List<MyLocation> myLocationList = new ArrayList<>();
-                    myLocationList.clear();
-                    myLocationList.addAll(users);
-
-                    if (!myLocationList.isEmpty()) {
-                        Location fristlocation = new Location("provider");
-                        fristlocation.setLatitude(myLocationList.get(0).getmLatitudeDegrees());
-                        fristlocation.setLongitude(myLocationList.get(0).getmLatitudeDegrees());
-                        Location lastlocation = new Location("provider");
-                        fristlocation.setLatitude(myLocationList.get(myLocationList.size()-1).getmLatitudeDegrees());
-                        fristlocation.setLongitude(myLocationList.get(myLocationList.size()-1).getmLatitudeDegrees());
-                        String distance = String.valueOf(fristlocation.distanceTo(lastlocation));
-                        totalCoveredDistance.setValue(distance);
-                    }
-
-
-                }, throwable -> {
-                    // Handle error
-                }));
-
-
-    }
 
 }
 

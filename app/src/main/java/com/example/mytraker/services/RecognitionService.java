@@ -84,7 +84,7 @@ public class RecognitionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(this, "Recognitions onStartCommand", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Recognitions Start", Toast.LENGTH_SHORT).show();
         startActivityRecognition();
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Activity tracking service")

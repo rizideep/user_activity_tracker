@@ -12,21 +12,44 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 
+import com.example.mytraker.roomdatabase.UserViewModel;
 import com.example.mytraker.services.RecognitionService;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 
 public class MainActivity extends AppCompatActivity {
 
+
+    private UserViewModel userViewModel;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // List of all required permissions
+        // Initialize ViewModel
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        // Example of deleting all locations
+        Disposable deleteDisposable = userViewModel.deleteAllLocations()
+                .subscribeOn(Schedulers.io())  // Perform the delete operation on the I/O thread
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        () -> Toast.makeText(this, "All location deleted", Toast.LENGTH_SHORT).show(),
+                        // onComplete
+                        throwable -> Toast.makeText(this, "Error: " + throwable.getMessage(), Toast.LENGTH_SHORT).show()   // onError
+                );
+
+        compositeDisposable.add(deleteDisposable);
+
         List<String> requiredPermissions = new ArrayList<>();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -48,13 +71,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-       // Request all missing permissions at once
+        // Request all missing permissions at once
         if (!requiredPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(this, requiredPermissions.toArray(new String[0]), 100);
         } else {
             // All permissions are already granted, proceed to start the service
             startActivityRecognitionService();
-            Toast.makeText(this, "All permissions granted, starting recognition services", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "All permissions granted", Toast.LENGTH_SHORT).show();
         }
 
 
@@ -79,6 +102,12 @@ public class MainActivity extends AppCompatActivity {
     private void startActivityRecognitionService() {
         Intent intent = new Intent(this, RecognitionService.class);
         ContextCompat.startForegroundService(this, intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        compositeDisposable.clear();  // Clean up disposables to avoid memory leaks
     }
 
 }

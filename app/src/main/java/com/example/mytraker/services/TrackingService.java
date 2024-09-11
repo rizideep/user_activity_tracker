@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -16,8 +17,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelStoreOwner;
 
 import com.example.mytraker.R;
 import com.example.mytraker.roomdatabase.MyLocation;
@@ -28,7 +27,12 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 public class TrackingService extends Service {
 
@@ -43,17 +47,15 @@ public class TrackingService extends Service {
     private SharedPreferences sharedPreferences;
 
     private UserViewModel userViewModel;
-    private CompositeDisposable disposables = new CompositeDisposable();
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Override
     public void onCreate() {
         super.onCreate();
-        userViewModel = new UserViewModel(getApplication());
-
-        sharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         createNotificationChannel();
+        userViewModel = new UserViewModel(getApplication());
+        sharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        // Set up the LocationRequest parameters
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(10000);  // 10 seconds
@@ -68,15 +70,39 @@ public class TrackingService extends Service {
                     Toast.makeText(TrackingService.this, "Location stopped", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 MyLocation myLocation = getMyLocation(locationResult);
                 userViewModel.insert(myLocation);
-                userViewModel.calculateTotalCoveredDistance();
-                Log.d(TAG, "Current Location: " + locationResult.getLastLocation().toString());
                 Toast.makeText(TrackingService.this, "Location Updating Continuously", Toast.LENGTH_SHORT).show();
-                Toast.makeText(TrackingService.this, "Current Location: " + locationResult.getLastLocation().toString(), Toast.LENGTH_SHORT).show();
-                Toast.makeText(TrackingService.this,
-                        "Total Distance: " + userViewModel.totalCoveredDistance.getValue(), Toast.LENGTH_SHORT).show();
+                // Subscribe to the observable from ViewModel
+                Disposable disposable = userViewModel.getAllLocations()
+                        .observeOn(AndroidSchedulers.mainThread())  // Observe on the main thread
+                        .subscribe(
+                                locationsList -> {
+                                    // Convert List<User> to ArrayList<User>
+                                    List<MyLocation> myLocationList = new ArrayList<>();
+                                    myLocationList.clear();
+                                    myLocationList.addAll(locationsList);
+                                    if (!myLocationList.isEmpty()) {
+                                        Location fristlocation = new Location("provider");
+                                        fristlocation.setLatitude(myLocationList.get(0).getmLatitudeDegrees());
+                                        fristlocation.setLongitude(myLocationList.get(0).getmLatitudeDegrees());
+                                        Location lastlocation = new Location("provider");
+                                        fristlocation.setLatitude(myLocationList.get(myLocationList.size() - 1).getmLatitudeDegrees());
+                                        fristlocation.setLongitude(myLocationList.get(myLocationList.size() - 1).getmLatitudeDegrees());
+                                        String distance = String.valueOf(fristlocation.distanceTo(lastlocation));
+                                        Toast.makeText(TrackingService.this, "Total distance: " + distance,
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                },  // OnNext
+                                throwable -> {
+                                    Toast.makeText(TrackingService.this, "Error: " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                                }// OnError
+                                // OnComplete
+                        );
+
+                // Add the disposable to CompositeDisposable to manage it
+                compositeDisposable.add(disposable);
+
             }
         };
         // Request location updates
@@ -104,7 +130,6 @@ public class TrackingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(this, "Location onStartCommand", Toast.LENGTH_SHORT).show();
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Location Tracking Service")
                 .setContentText("Retrieving current location...")
@@ -125,6 +150,7 @@ public class TrackingService extends Service {
         super.onDestroy();
         sharedPreferences.edit().putBoolean(IS_SERVICE_RUNNING_KEY, false).apply();
         stopLocationUpdates();  // Stop updates when service is destroyed
+        compositeDisposable.clear();
     }
 
     private boolean isServiceRunning() {
