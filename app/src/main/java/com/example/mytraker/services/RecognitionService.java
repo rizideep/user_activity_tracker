@@ -89,7 +89,7 @@ public class RecognitionService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Activity tracking service")
                 .setContentText("Retrieving user activity...")
-                .setSmallIcon(R.drawable.ic_launcher_background) // Replace with your own icon
+                .setSmallIcon(R.mipmap.ic_launcher) // Replace with your own icon
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .build();
 

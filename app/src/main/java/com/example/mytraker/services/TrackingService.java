@@ -133,7 +133,7 @@ public class TrackingService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Location Tracking Service")
                 .setContentText("Retrieving current location...")
-                .setSmallIcon(R.drawable.ic_launcher_background) // Replace with your own icon
+                .setSmallIcon(R.mipmap.ic_launcher)  // Replace with your own icon
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .build();
         Log.d(TAG, "isServiceRunning." + isServiceRunning());
