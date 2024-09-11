@@ -9,6 +9,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -40,7 +42,7 @@ public class RecognitionService extends Service {
 
     private void startActivityRecognition() {
         Intent intent = new Intent(this, MyCustomReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_MUTABLE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
             // Request permission if not granted
             return;
@@ -91,9 +93,15 @@ public class RecognitionService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .build();
 
-        startForeground(5, notification);
 
-        return START_NOT_STICKY;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(5, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+        } else {
+     // For Android versions below 10, use the traditional startForeground() method without the flag
+            startForeground(5, notification);
+        }
+
+        return START_STICKY;
     }
 
     @SuppressLint("MissingPermission")
@@ -120,8 +128,4 @@ public class RecognitionService extends Service {
         }
     }
 
-
-    void showToastMassage(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
 }

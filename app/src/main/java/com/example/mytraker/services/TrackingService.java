@@ -13,15 +13,22 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
 
 import com.example.mytraker.R;
+import com.example.mytraker.roomdatabase.MyLocation;
+import com.example.mytraker.roomdatabase.UserViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 public class TrackingService extends Service {
 
@@ -35,9 +42,14 @@ public class TrackingService extends Service {
 
     private SharedPreferences sharedPreferences;
 
+    private UserViewModel userViewModel;
+    private CompositeDisposable disposables = new CompositeDisposable();
+
     @Override
     public void onCreate() {
         super.onCreate();
+        userViewModel = new UserViewModel(getApplication());
+
         sharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         createNotificationChannel();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -57,15 +69,26 @@ public class TrackingService extends Service {
                     return;
                 }
 
-                // Handle continuous location updates here
+                MyLocation myLocation = getMyLocation(locationResult);
+                userViewModel.insert(myLocation);
+                userViewModel.calculateTotalCoveredDistance();
                 Log.d(TAG, "Current Location: " + locationResult.getLastLocation().toString());
                 Toast.makeText(TrackingService.this, "Location Updating Continuously", Toast.LENGTH_SHORT).show();
                 Toast.makeText(TrackingService.this, "Current Location: " + locationResult.getLastLocation().toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(TrackingService.this,
+                        "Total Distance: " + userViewModel.totalCoveredDistance.getValue(), Toast.LENGTH_SHORT).show();
             }
         };
-
         // Request location updates
         startLocationUpdates();
+    }
+
+    private static @NonNull MyLocation getMyLocation(LocationResult locationResult) {
+        MyLocation myLocation = new MyLocation(locationResult.getLastLocation().getTime(),
+                locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), locationResult.getLastLocation().getSpeed());
+
+
+        return myLocation;
     }
 
     private void startLocationUpdates() {
@@ -88,7 +111,7 @@ public class TrackingService extends Service {
                 .setSmallIcon(R.drawable.ic_launcher_background) // Replace with your own icon
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .build();
-        Log.d(TAG, "isServiceRunning."+isServiceRunning());
+        Log.d(TAG, "isServiceRunning." + isServiceRunning());
         sharedPreferences.edit().putBoolean(IS_SERVICE_RUNNING_KEY, true).apply();
         startForeground(1, notification);
         if (isServiceRunning()) {

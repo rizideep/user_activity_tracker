@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import com.example.mytraker.services.TrackingService;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
@@ -15,9 +17,15 @@ import java.util.List;
 
 public class MyCustomReceiver extends BroadcastReceiver {
     private static final String TAG = "ActivityRecognition";
+    Context mContext;
 
     @Override
-    public void onReceive(Context mContext, Intent intent) {
+    public void onReceive(Context context, Intent intent) {
+        mContext = context;
+// Initialize variables to track the activity with the highest probability
+
+        DetectedActivity highestProbabilityActivity = null;
+        int highestProbability = 0;
         Toast.makeText(mContext, "MyCustomReceiver onReceive", Toast.LENGTH_SHORT).show();
         if (ActivityRecognitionResult.hasResult(intent)) {
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
@@ -26,8 +34,23 @@ public class MyCustomReceiver extends BroadcastReceiver {
             for (DetectedActivity activity : detectedActivities) {
                 String activityType = getActivityType(activity.getType());
                 Log.d(TAG, "Detected activity: " + activityType + " with confidence: " + activity.getConfidence());
-                Toast.makeText(mContext, "MyCustomReceiver onReceive", Toast.LENGTH_SHORT).show();
+                int confidence = activity.getConfidence();
+                if (confidence > highestProbability) {
+                    highestProbability = confidence;
+                    highestProbabilityActivity = activity;
+                }
             }
+
+            // Check if the activity with the highest probability is not STILL
+            if (highestProbabilityActivity != null) {
+                String highestActivityType = getActivityType(highestProbabilityActivity.getType());
+                if (!highestActivityType.equals("STILL")) {
+                    Toast.makeText(mContext, "Most probable activity: " + highestActivityType + " with confidence: " + highestProbability, Toast.LENGTH_SHORT).show();
+                    startTrackingService(mContext);
+                }
+            }
+
+
         }
     }
 
@@ -95,6 +118,7 @@ public class MyCustomReceiver extends BroadcastReceiver {
     @SuppressLint("NewApi")
     private void startTrackingService(Context context) {
         Intent serviceIntent = new Intent(context, TrackingService.class);
-        context.startForegroundService(serviceIntent);
+
+        ContextCompat.startForegroundService(context, serviceIntent);
     }
 }

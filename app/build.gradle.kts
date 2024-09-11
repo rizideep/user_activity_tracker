@@ -41,4 +41,15 @@ dependencies {
 
     implementation (libs.play.services.location.v2101)
 
+    // Room database dependencies
+    implementation (libs.androidx.room.runtime)
+    annotationProcessor (libs.androidx.room.compiler)
+
+    // RxJava and RxJavaRoom dependencies
+    implementation (libs.rxjava)
+    implementation (libs.rxandroid)
+    implementation (libs.room.rxjava3)
+    implementation (libs.androidx.lifecycle.viewmodel.ktx)
+
+
 }

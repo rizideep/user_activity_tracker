@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
 
     <application
         android:allowBackup="true"
@@ -23,6 +25,8 @@
         <activity
             android:name=".customre.MyCustomActivity"
             android:exported="true">
+
+
 
         </activity>
 
@@ -43,7 +47,9 @@
             android:foregroundServiceType="location" />
         <service
             android:name=".services.RecognitionService"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="location"
+            />
 
           <receiver
               android:name=".customre.MyCustomReceiver"

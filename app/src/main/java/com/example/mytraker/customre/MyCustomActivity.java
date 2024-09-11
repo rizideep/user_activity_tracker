@@ -67,7 +67,7 @@ public class MyCustomActivity extends AppCompatActivity {
 
     private void startActivityRecognition() {
         Intent intent = new Intent(this, MyCustomReceiver.class);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_MUTABLE);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
             // Request permission if not granted
