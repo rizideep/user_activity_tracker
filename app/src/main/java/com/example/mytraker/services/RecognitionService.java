@@ -37,6 +37,7 @@ public class RecognitionService extends Service {
         super.onCreate();
         createNotificationChannel();
         activityRecognitionClient = ActivityRecognition.getClient(this);
+
     }
 
 

@@ -40,6 +40,16 @@
             </intent-filter>
         </activity>
 
+<!--        <activity-->
+<!--            android:name="com.iphonik.chameleon.AppPreferenceActivity"-->
+<!--            android:exported="false"-->
+<!--            android:label="Preferences" >-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.iphonik.chameleon.AppPreferenceActivity" />-->
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
+<!--            </intent-filter>-->
+<!--        </activity>-->
+
         <service
             android:name=".services.TrackingService"
             android:enabled="true"
@@ -56,6 +66,9 @@
               android:exported="true">
 
           </receiver>
+
+
+
 
 
 

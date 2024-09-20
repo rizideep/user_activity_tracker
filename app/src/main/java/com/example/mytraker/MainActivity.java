@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.mytraker.roomdatabase.UserViewModel;
+import com.example.mytraker.services.BatteryOptimizationHelper;
 import com.example.mytraker.services.RecognitionService;
 
 import java.util.ArrayList;
@@ -38,6 +39,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // Initialize ViewModel
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+
+        // Request to disable battery optimizations
+        BatteryOptimizationHelper.requestDisableBatteryOptimization(this);
+//      AutoStartHelper.openVivoAutoStartSettings(this);
+
+
         // Example of deleting all locations
         Disposable deleteDisposable = userViewModel.deleteAllLocations()
                 .subscribeOn(Schedulers.io())  // Perform the delete operation on the I/O thread

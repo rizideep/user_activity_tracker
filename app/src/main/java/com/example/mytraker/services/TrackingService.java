@@ -70,6 +70,7 @@ public class TrackingService extends Service {
                     Toast.makeText(TrackingService.this, "Location stopped", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                Toast.makeText(TrackingService.this, "Error: " + locationResult.getLastLocation(), Toast.LENGTH_SHORT).show();
                 MyLocation myLocation = getMyLocation(locationResult);
                 userViewModel.insert(myLocation);
                 Toast.makeText(TrackingService.this, "Location Updating Continuously", Toast.LENGTH_SHORT).show();
@@ -82,13 +83,14 @@ public class TrackingService extends Service {
                                     List<MyLocation> myLocationList = new ArrayList<>();
                                     myLocationList.clear();
                                     myLocationList.addAll(locationsList);
+                                    Toast.makeText(TrackingService.this, "List size: " + myLocationList.size(), Toast.LENGTH_SHORT).show();
                                     if (!myLocationList.isEmpty()) {
-                                        Location fristlocation = new Location("provider");
+                                        Location fristlocation = new Location("");
                                         fristlocation.setLatitude(myLocationList.get(0).getmLatitudeDegrees());
                                         fristlocation.setLongitude(myLocationList.get(0).getmLatitudeDegrees());
-                                        Location lastlocation = new Location("provider");
-                                        fristlocation.setLatitude(myLocationList.get(myLocationList.size() - 1).getmLatitudeDegrees());
-                                        fristlocation.setLongitude(myLocationList.get(myLocationList.size() - 1).getmLatitudeDegrees());
+                                        Location lastlocation = new Location("");
+                                        lastlocation.setLatitude(myLocationList.get(myLocationList.size() - 1).getmLatitudeDegrees());
+                                        lastlocation.setLongitude(myLocationList.get(myLocationList.size() - 1).getmLatitudeDegrees());
                                         String distance = String.valueOf(fristlocation.distanceTo(lastlocation)/ 1000);
                                         Toast.makeText(TrackingService.this, "Total distance: " + distance,
                                                 Toast.LENGTH_SHORT).show();
